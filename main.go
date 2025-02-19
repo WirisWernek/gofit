@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gofit/controllers/planoTreino"
 	"gofit/equipamento"
 	"log"
 	"net/http"
@@ -14,6 +15,7 @@ func main() {
 	router := mux.NewRouter()
 
 	loadRoutesEquipamento(router)
+	loadRoutesPlanoTreino(router)
 
 	fmt.Println("Escutando na porta 5000")
 	log.Fatal(http.ListenAndServe(":5000", router))
@@ -22,12 +24,29 @@ func main() {
 func loadRoutesEquipamento(router *mux.Router) {
 	endpoint := "/equipamento"
 
-	router.HandleFunc(endpoint, equipamento.GetAll).Methods(http.MethodGet)
-	router.HandleFunc(endpoint+"/{id}", equipamento.GetById).Methods(http.MethodGet)
-	router.HandleFunc(endpoint, equipamento.Insert).Methods(http.MethodPost)
-	router.HandleFunc(endpoint+"/{id}", equipamento.Update).Methods(http.MethodPut)
-	router.HandleFunc(endpoint+"/{id}", equipamento.Delete).Methods(http.MethodDelete)
+	equipamentoController := equipamento.NewEquipamento()
+
+	router.HandleFunc(endpoint, equipamentoController.GetAll).Methods(http.MethodGet)
+	router.HandleFunc(endpoint+"/{id}", equipamentoController.GetById).Methods(http.MethodGet)
+	router.HandleFunc(endpoint, equipamentoController.Insert).Methods(http.MethodPost)
+	router.HandleFunc(endpoint+"/{id}", equipamentoController.Update).Methods(http.MethodPut)
+	router.HandleFunc(endpoint+"/{id}", equipamentoController.Delete).Methods(http.MethodDelete)
 
 	fmt.Println("Escutando endpoints de Equipamento em /equipamento")
+
+}
+
+func loadRoutesPlanoTreino(router *mux.Router) {
+	endpoint := "/plano-treino"
+
+	planoTreinoController := planoTreino.NewPlanoTreino()
+
+	router.HandleFunc(endpoint, planoTreinoController.GetAll).Methods(http.MethodGet)
+	router.HandleFunc(endpoint+"/{id}", planoTreinoController.GetById).Methods(http.MethodGet)
+	router.HandleFunc(endpoint, planoTreinoController.Insert).Methods(http.MethodPost)
+	router.HandleFunc(endpoint+"/{id}", planoTreinoController.Update).Methods(http.MethodPut)
+	router.HandleFunc(endpoint+"/{id}", planoTreinoController.Delete).Methods(http.MethodDelete)
+
+	fmt.Println("Escutando endpoints de Plano de Treino em /plano-treino")
 
 }
