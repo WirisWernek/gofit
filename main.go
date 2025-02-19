@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"gofit/controllers/equipamento"
 	"gofit/controllers/planoTreino"
-	"gofit/equipamento"
 	"log"
 	"net/http"
 
