@@ -1,7 +1,7 @@
 package models
 
 type Treino struct {
-	ID            int64  `json:"id"`
+	ID            uint64 `json:"id"`
 	Quando        string `json:"quando"`
-	IdPlanoTreino int64  `json:"idPlanoTreino"`
+	IdPlanoTreino uint64 `json:"idPlanoTreino"`
 }

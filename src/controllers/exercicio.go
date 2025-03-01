@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"gofit/banco"
 	"gofit/models"
+	"gofit/src/repositories"
 	"gofit/src/response"
 	"io"
 	"net/http"
@@ -23,39 +23,14 @@ func GetAllExercicios(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-
-	linhas, erro := db.Query("SELECT * FROM exercicio")
-
+	exercicioRepository := repositories.NewRepositoryExercicio(db)
+	exercicios, erro := exercicioRepository.GetAllExercicios()
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao buscar exercícios no banco"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer linhas.Close()
-
-	var exercicios []models.Exercicio
-
-	for linhas.Next() {
-		var exercicio models.Exercicio
-
-		if erro := linhas.Scan(&exercicio.ID, &exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID); erro != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Erro ao escanear os exercícios"))
-			return
-		}
-
-		exercicios = append(exercicios, exercicio)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if erro := json.NewEncoder(w).Encode(exercicios); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter os exercícios em JSON"))
-		return
-	}
+	response.JSON(w, http.StatusCreated, exercicios)
 }
 
 func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
@@ -80,25 +55,15 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	var exercicio models.Exercicio
-	erro = db.QueryRow("SELECT * FROM exercicio WHERE id = $1", ID).Scan(&exercicio.ID, &exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID)
-
+	exercicioRepository := repositories.NewRepositoryExercicio(db)
+	exercicio, erro := exercicioRepository.GetExercicioByID(ID)
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao buscar exercicios no banco"))
-		fmt.Println(erro)
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	response.JSON(w, http.StatusCreated, exercicio)
 
-	if erro := json.NewEncoder(w).Encode(exercicio); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("Erro ao converter o exercicio em JSON"))
-		return
-	}
 }
 
 func InsertExercicio(w http.ResponseWriter, r *http.Request) {
@@ -127,45 +92,15 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("INSERT INTO exercicio (nome, quantidade_minima_repeticoes, quantidade_maxima_repeticoes, id_equipamento) VALUES($1, $2, $3, $4);")
-
+	exercicioRepository := repositories.NewRepositoryExercicio(db)
+	exercicio.ID, erro = exercicioRepository.InsertExercicio(exercicio)
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao criar statement"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
+	response.JSON(w, http.StatusCreated, exercicio)
 
-	insercao, erro := statement.Exec(&exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID)
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao setar parametros do statement"))
-		return
-	}
-
-	_, erro = insercao.RowsAffected()
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao verificar inserção"))
-		fmt.Println(erro)
-		return
-	}
-
-	message, erro := json.Marshal("Exercício inserido")
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("Erro ao converter exercicio em JSON"))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(message)
 }
 func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
@@ -202,24 +137,14 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-
-	statement, erro := db.Prepare("UPDATE exercicio SET nome= $2, quantidade_minima_repeticoes=$3, quantidade_maxima_repeticoes=$4, id_equipamento=$5 WHERE id = $1")
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao criar statement"))
+	exercicioRepository := repositories.NewRepositoryExercicio(db)
+	if erro = exercicioRepository.UpdateExercicio(ID, exercicio); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
+	response.JSON(w, http.StatusNoContent, nil)
 
-	if _, erro := statement.Exec(ID, &exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao setar parametros do statement"))
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }
 func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
@@ -240,21 +165,11 @@ func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("DELETE FROM exercicio WHERE id = $1")
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+	exercicioRepository := repositories.NewRepositoryExercicio(db)
+	if erro = exercicioRepository.DeleteExercicioByID(ID); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
-
-	_, erro = statement.Exec(ID)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
+	response.JSON(w, http.StatusNoContent, nil)
 }

@@ -1,6 +1,6 @@
 package models
 
 type ExercicioPlanoTreino struct {
-	ExercicioID   int64 `json:"idExercicio"`
-	PlanoTreinoID int64 `json:"idPlanoTreino"`
+	ExercicioID   uint64 `json:"idExercicio"`
+	PlanoTreinoID uint64 `json:"idPlanoTreino"`
 }

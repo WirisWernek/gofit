@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"gofit/banco"
 	"gofit/models"
+	"gofit/src/repositories"
 	"gofit/src/response"
 	"io"
 	"net/http"
@@ -22,39 +23,14 @@ func GetAllPlanosTreino(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	linhas, erro := db.Query("SELECT * FROM plano_treino")
-
+	planoTreinoRepository := repositories.NewRepositoryPlanoTreino(db)
+	planosTreino, erro := planoTreinoRepository.GetAllPlanosTreino()
 	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer linhas.Close()
-
-	var planoTreinos []models.PlanoTreino
-
-	for linhas.Next() {
-		var planoTreino models.PlanoTreino
-
-		erro = linhas.Scan(&planoTreino.ID, &planoTreino.Nome, &planoTreino.Descricao, &planoTreino.Inicio, &planoTreino.Descanso, &planoTreino.Ativo)
-
-		if erro != nil {
-			response.Erro(w, http.StatusInternalServerError, erro)
-			return
-		}
-
-		planoTreinos = append(planoTreinos, planoTreino)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	erro = json.NewEncoder(w).Encode(planoTreinos)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
+	response.JSON(w, http.StatusCreated, planosTreino)
 }
 
 func GetPlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
@@ -77,23 +53,14 @@ func GetPlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	var planoTreino models.PlanoTreino
-	erro = db.QueryRow("SELECT * FROM plano_treino WHERE id = $1", ID).Scan(&planoTreino.ID, &planoTreino.Nome, &planoTreino.Descricao, &planoTreino.Inicio, &planoTreino.Descanso, &planoTreino.Ativo)
-
+	planoTreinoRepository := repositories.NewRepositoryPlanoTreino(db)
+	planoTreino, erro := planoTreinoRepository.GetPlanoTreinoByID(ID)
 	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	erro = json.NewEncoder(w).Encode(planoTreino)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
+	response.JSON(w, http.StatusOK, planoTreino)
 }
 
 func InsertPlanoTreino(w http.ResponseWriter, r *http.Request) {
@@ -121,39 +88,14 @@ func InsertPlanoTreino(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("INSERT INTO plano_treino (nome, descricao, inicio, descanso, ativo) VALUES($1, $2, $3, $4, $5)")
-
+	planoTreinoRepository := repositories.NewRepositoryPlanoTreino(db)
+	planoTreino.ID, erro = planoTreinoRepository.InsertPlanoTreino(planoTreino)
 	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
-
-	insercao, erro := statement.Exec(planoTreino.Nome, planoTreino.Descricao, planoTreino.Inicio, planoTreino.Descanso, planoTreino.Ativo)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	_, erro = insercao.RowsAffected()
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	message, erro := json.Marshal("Equipamento inserido")
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(message)
+	response.JSON(w, http.StatusCreated, planoTreino)
 }
 
 func UpdatePlanoTreino(w http.ResponseWriter, r *http.Request) {
@@ -190,23 +132,13 @@ func UpdatePlanoTreino(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("UPDATE plano_treino SET nome=$2, descricao=$3, inicio=$4, descanso=$5, ativo=$6 WHERE id=$1")
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+	planoTreinoRepository := repositories.NewRepositoryPlanoTreino(db)
+	if erro = planoTreinoRepository.UpdatePlanoTreino(ID, planoTreino); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
-
-	_, erro = statement.Exec(ID, planoTreino.Nome, planoTreino.Descricao, planoTreino.Inicio, planoTreino.Descanso, planoTreino.Ativo)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
+	response.JSON(w, http.StatusNoContent, nil)
 }
 
 func DeletePlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
@@ -228,21 +160,11 @@ func DeletePlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("DELETE FROM plano_treino WHERE id = $1")
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+	planoTreinoRepository := repositories.NewRepositoryPlanoTreino(db)
+	if erro = planoTreinoRepository.DeletePlanoTreinoByID(ID); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
-
-	_, erro = statement.Exec(ID)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
+	response.JSON(w, http.StatusNoContent, nil)
 }

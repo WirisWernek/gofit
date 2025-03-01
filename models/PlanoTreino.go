@@ -3,7 +3,7 @@ package models
 import "time"
 
 type PlanoTreino struct {
-	ID        int64     `json:"id"`
+	ID        uint64    `json:"id"`
 	Inicio    time.Time `json:"inicio"`
 	Ativo     bool      `json:"ativo"`
 	Nome      string    `json:"nome"`

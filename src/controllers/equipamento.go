@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"gofit/banco"
 	"gofit/models"
+	"gofit/src/repositories"
 	"gofit/src/response"
 	"io"
 	"net/http"
@@ -24,38 +24,15 @@ func GetAllEquipamentos(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	linhas, erro := db.Query("SELECT * FROM equipamento")
-
+	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
+	equipamentos, erro := equipamentoRepository.GetAllEquipamentos()
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao buscar equipamentos no banco"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer linhas.Close()
+	response.JSON(w, http.StatusOK, equipamentos)
 
-	var equipamentos []models.Equipamento
-
-	for linhas.Next() {
-		var equipamento models.Equipamento
-
-		if erro := linhas.Scan(&equipamento.ID, &equipamento.Nome, &equipamento.Tipo); erro != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Erro ao escanear os equipamentos"))
-			return
-		}
-
-		equipamentos = append(equipamentos, equipamento)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if erro := json.NewEncoder(w).Encode(equipamentos); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter os equipamentos em JSON"))
-		return
-	}
 }
 
 func GetEquipamentoByID(w http.ResponseWriter, r *http.Request) {
@@ -80,25 +57,15 @@ func GetEquipamentoByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	var equipamento models.Equipamento
-	erro = db.QueryRow("SELECT * FROM equipamento WHERE id = $1", ID).Scan(&equipamento.ID, &equipamento.Nome, &equipamento.Tipo)
-
+	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
+	equipamento, erro := equipamentoRepository.GetEquipamentoByID(ID)
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao buscar equipamentos no banco"))
-		fmt.Println(erro)
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	response.JSON(w, http.StatusCreated, equipamento)
 
-	if erro := json.NewEncoder(w).Encode(equipamento); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("Erro ao converter o equipamento em JSON"))
-		return
-	}
 }
 
 func InsertEquipamento(w http.ResponseWriter, r *http.Request) {
@@ -126,46 +93,15 @@ func InsertEquipamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-
-	statement, erro := db.Prepare("INSERT INTO equipamento (nome, tipo) VALUES($1, $2)")
-
+	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
+	equipamento.ID, erro = equipamentoRepository.InsertEquipamento(equipamento)
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao criar statement"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
+	response.JSON(w, http.StatusCreated, equipamento)
 
-	insercao, erro := statement.Exec(equipamento.Nome, equipamento.Tipo)
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao setar parametros do statement"))
-		return
-	}
-
-	_, erro = insercao.RowsAffected()
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao verificar inserção"))
-		fmt.Println(erro)
-		return
-	}
-
-	message, erro := json.Marshal("Equipamento inserido")
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("Erro ao converter equipamento em JSON"))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(message)
 }
 
 func UpdateEquipamento(w http.ResponseWriter, r *http.Request) {
@@ -203,24 +139,14 @@ func UpdateEquipamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-
-	statement, erro := db.Prepare("UPDATE equipamento SET nome = $2, tipo = $3 WHERE id = $1")
-
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao criar statement"))
+	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
+	if erro = equipamentoRepository.UpdateEquipamento(ID, equipamento); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	defer statement.Close()
+	response.JSON(w, http.StatusNoContent, nil)
 
-	if _, erro := statement.Exec(ID, equipamento.Nome, equipamento.Tipo); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao setar parametros do statement"))
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }
 
 func DeleteEquipmentoByID(w http.ResponseWriter, r *http.Request) {
@@ -242,21 +168,12 @@ func DeleteEquipmentoByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	statement, erro := db.Prepare("DELETE FROM equipamento WHERE id = $1")
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	defer statement.Close()
-
-	_, erro = statement.Exec(ID)
-
-	if erro != nil {
-		response.Erro(w, http.StatusInternalServerError, erro)
+	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
+	if erro = equipamentoRepository.DeleteEquipmentoByID(ID); erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	response.JSON(w, http.StatusNoContent, nil)
+
 }
