@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"gofit/banco"
-	"gofit/models"
+	"gofit/src/database"
+	"gofit/src/models"
 	"gofit/src/repositories"
 	"gofit/src/response"
 	"io"
@@ -14,11 +14,11 @@ import (
 )
 
 func GetAllExercicios(w http.ResponseWriter, r *http.Request) {
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao banco"))
+		w.Write([]byte("Erro ao conectar ao database"))
 		return
 	}
 
@@ -45,11 +45,11 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao banco"))
+		w.Write([]byte("Erro ao conectar ao database"))
 		return
 	}
 
@@ -82,11 +82,11 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao banco"))
+		w.Write([]byte("Erro ao conectar ao database"))
 		return
 	}
 
@@ -128,11 +128,11 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao banco"))
+		w.Write([]byte("Erro ao conectar ao database"))
 		return
 	}
 
@@ -156,7 +156,7 @@ func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)

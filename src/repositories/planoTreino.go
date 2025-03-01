@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"database/sql"
-	"gofit/models"
+	"gofit/src/models"
 )
 
 type PlanoTreinoRepository struct {

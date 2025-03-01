@@ -1,4 +1,4 @@
-package banco
+package database
 
 import (
 	"database/sql"

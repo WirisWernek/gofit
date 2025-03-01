@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"gofit/banco"
-	"gofit/models"
+	"gofit/src/database"
+	"gofit/src/models"
 	"gofit/src/repositories"
 	"gofit/src/response"
 	"io"
@@ -14,7 +14,7 @@ import (
 )
 
 func GetAllPlanosTreino(w http.ResponseWriter, r *http.Request) {
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
@@ -44,7 +44,7 @@ func GetPlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
@@ -79,7 +79,7 @@ func InsertPlanoTreino(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
@@ -123,7 +123,7 @@ func UpdatePlanoTreino(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
@@ -151,7 +151,7 @@ func DeletePlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, erro := banco.Conectar()
+	db, erro := database.Conectar()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
