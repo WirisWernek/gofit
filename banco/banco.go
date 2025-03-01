@@ -3,7 +3,7 @@ package banco
 import (
 	"database/sql"
 
-	_ "github.com/lib/pq" // Driver de Conexão com o mysql
+	_ "github.com/lib/pq" // Driver de Conexão com o PostgreSQL
 )
 
 // Conectar abre a conexao com o banco de dados
