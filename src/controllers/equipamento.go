@@ -1,10 +1,11 @@
-package equipamento
+package controllers
 
 import (
 	"encoding/json"
 	"fmt"
 	"gofit/banco"
 	"gofit/models"
+	"gofit/src/response"
 	"io"
 	"net/http"
 	"strconv"
@@ -12,14 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type equipamento struct{}
-
-func NewEquipamento() equipamento {
-	var equipamento equipamento
-	return equipamento
-}
-
-func (e equipamento) GetAll(w http.ResponseWriter, r *http.Request) {
+func GetAllEquipamentos(w http.ResponseWriter, r *http.Request) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
@@ -64,7 +58,7 @@ func (e equipamento) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e equipamento) GetById(w http.ResponseWriter, r *http.Request) {
+func GetEquipamentoByID(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	// a função ParseUint recebe 3 parâmetros: 1º a variavel a ser convertida, 2º a base utilizada, 3º o tamanho em bits
@@ -107,7 +101,7 @@ func (e equipamento) GetById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (e equipamento) Insert(w http.ResponseWriter, r *http.Request) {
+func InsertEquipamento(w http.ResponseWriter, r *http.Request) {
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
@@ -173,7 +167,8 @@ func (e equipamento) Insert(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write(message)
 }
-func (e equipamento) Update(w http.ResponseWriter, r *http.Request) {
+
+func UpdateEquipamento(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
@@ -227,18 +222,21 @@ func (e equipamento) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
-func (e equipamento) Delete(w http.ResponseWriter, r *http.Request) {
+
+func DeleteEquipmentoByID(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 32)
 
-	if handleError(w, erro, "Erro ao converter o parâmetro ID") {
+	if erro != nil {
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	db, erro := banco.Conectar()
 
-	if handleError(w, erro, "Erro ao conectar ao banco") {
+	if erro != nil {
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -246,7 +244,8 @@ func (e equipamento) Delete(w http.ResponseWriter, r *http.Request) {
 
 	statement, erro := db.Prepare("DELETE FROM equipamento WHERE id = $1")
 
-	if handleError(w, erro, "Erro ao criar statement") {
+	if erro != nil {
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -254,21 +253,10 @@ func (e equipamento) Delete(w http.ResponseWriter, r *http.Request) {
 
 	_, erro = statement.Exec(ID)
 
-	if handleError(w, erro, "Erro ao setar parametros do statement") {
+	if erro != nil {
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func handleError(w http.ResponseWriter, erro error, message string) bool {
-	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(message))
-		fmt.Println(erro)
-		return true
-	}
-
-	return false
-
+	response.JSON(w, http.StatusNoContent, nil)
 }
