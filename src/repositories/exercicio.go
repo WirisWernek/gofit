@@ -14,7 +14,7 @@ func NewRepositoryExercicio(db *sql.DB) *ExercicioRepository {
 }
 
 func (repository ExercicioRepository) InsertExercicio(exercicio models.Exercicio) (uint64, error) {
-	statement, erro := repository.db.Prepare("INSERT INTO exercicio (nome, quantidade_minima_repeticoes, quantidade_maxima_repeticoes, id_equipamento) VALUES($1, $2, $3, $4) RETURNING id")
+	statement, erro := repository.db.Prepare("INSERT INTO exercicio (nome, id_equipamento) VALUES($1, $2) RETURNING id")
 
 	if erro != nil {
 		return 0, erro
@@ -23,7 +23,7 @@ func (repository ExercicioRepository) InsertExercicio(exercicio models.Exercicio
 	defer statement.Close()
 
 	lastID := 0
-	erro = statement.QueryRow(exercicio.Nome, exercicio.QuantidadeMinimaRepeticoes, exercicio.QuantidadeMaximaRepeticoes, exercicio.EquipamentoID).Scan(&lastID)
+	erro = statement.QueryRow(exercicio.Nome, exercicio.EquipamentoID).Scan(&lastID)
 
 	if erro != nil {
 		return 0, erro
@@ -33,7 +33,7 @@ func (repository ExercicioRepository) InsertExercicio(exercicio models.Exercicio
 }
 
 func (repository ExercicioRepository) GetAllExercicios() ([]models.Exercicio, error) {
-	linhas, erro := repository.db.Query("SELECT * FROM exercicio")
+	linhas, erro := repository.db.Query("SELECT id, nome, id_equipamento FROM exercicio")
 
 	if erro != nil {
 		return nil, erro
@@ -46,7 +46,7 @@ func (repository ExercicioRepository) GetAllExercicios() ([]models.Exercicio, er
 	for linhas.Next() {
 		var exercicio models.Exercicio
 
-		if erro := linhas.Scan(&exercicio.ID, &exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID); erro != nil {
+		if erro := linhas.Scan(&exercicio.ID, &exercicio.Nome, &exercicio.EquipamentoID); erro != nil {
 			return nil, erro
 		}
 
@@ -57,7 +57,7 @@ func (repository ExercicioRepository) GetAllExercicios() ([]models.Exercicio, er
 }
 
 func (repository ExercicioRepository) GetExercicioByID(exercicioID uint64) (models.Exercicio, error) {
-	statement, erro := repository.db.Prepare("SELECT * FROM exercicio WHERE id = $1")
+	statement, erro := repository.db.Prepare("SELECT id, nome, id_equipamento FROM exercicio WHERE id = $1")
 
 	if erro != nil {
 		return models.Exercicio{}, erro
@@ -75,7 +75,7 @@ func (repository ExercicioRepository) GetExercicioByID(exercicioID uint64) (mode
 
 	var exercicio models.Exercicio
 	if linhas.Next() {
-		if erro = linhas.Scan(&exercicio.ID, &exercicio.Nome, &exercicio.QuantidadeMinimaRepeticoes, &exercicio.QuantidadeMaximaRepeticoes, &exercicio.EquipamentoID); erro != nil {
+		if erro = linhas.Scan(&exercicio.ID, &exercicio.Nome, &exercicio.EquipamentoID); erro != nil {
 			return models.Exercicio{}, erro
 		}
 
@@ -85,7 +85,7 @@ func (repository ExercicioRepository) GetExercicioByID(exercicioID uint64) (mode
 }
 
 func (repository ExercicioRepository) UpdateExercicio(exercicioID uint64, exercicio models.Exercicio) error {
-	statement, erro := repository.db.Prepare("UPDATE exercicio SET nome= $2, quantidade_minima_repeticoes=$3, quantidade_maxima_repeticoes=$4, id_equipamento=$5 WHERE id = $1")
+	statement, erro := repository.db.Prepare("UPDATE exercicio SET nome= $2, id_equipamento=$3 WHERE id = $1")
 
 	if erro != nil {
 		return erro
@@ -93,7 +93,7 @@ func (repository ExercicioRepository) UpdateExercicio(exercicioID uint64, exerci
 
 	defer statement.Close()
 
-	_, erro = statement.Exec(exercicioID, exercicio.Nome, exercicio.QuantidadeMinimaRepeticoes, exercicio.QuantidadeMaximaRepeticoes, exercicio.EquipamentoID)
+	_, erro = statement.Exec(exercicioID, exercicio.Nome, exercicio.EquipamentoID)
 
 	if erro != nil {
 		return erro

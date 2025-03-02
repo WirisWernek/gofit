@@ -33,7 +33,7 @@ func (repository EquipamentoRepository) InsertEquipamento(equipamento models.Equ
 }
 
 func (repository EquipamentoRepository) GetAllEquipamentos() ([]models.Equipamento, error) {
-	linhas, erro := repository.db.Query("SELECT * FROM equipamento")
+	linhas, erro := repository.db.Query("SELECT id, nome, tipo FROM equipamento")
 
 	if erro != nil {
 		return nil, erro
@@ -57,7 +57,7 @@ func (repository EquipamentoRepository) GetAllEquipamentos() ([]models.Equipamen
 }
 
 func (repository EquipamentoRepository) GetEquipamentoByID(equipamentoID uint64) (models.Equipamento, error) {
-	statement, erro := repository.db.Prepare("SELECT * FROM equipamento WHERE id = $1")
+	statement, erro := repository.db.Prepare("SELECT id, nome, tipo FROM equipamento WHERE id = $1")
 
 	if erro != nil {
 		return models.Equipamento{}, erro

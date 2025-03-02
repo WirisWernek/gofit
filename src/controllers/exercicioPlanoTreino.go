@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetAllExercicios(w http.ResponseWriter, r *http.Request) {
+func GetAllExercicioPlanoTreinos(w http.ResponseWriter, r *http.Request) {
 	db, erro := database.Conectar()
 
 	if erro != nil {
@@ -22,18 +22,18 @@ func GetAllExercicios(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-	exercicioRepository := repositories.NewRepositoryExercicio(db)
-	exercicios, erro := exercicioRepository.GetAllExercicios()
+	exercicioPlanoTreinoRepository := repositories.NewRepositoryExercicioPlanoTreino(db)
+	exercicioPlanoTreinos, erro := exercicioPlanoTreinoRepository.GetAllExercicioPlanoTreinos()
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response.JSON(w, http.StatusOK, exercicios)
+	response.JSON(w, http.StatusOK, exercicioPlanoTreinos)
 }
 
-func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
+func GetExercicioPlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	// a função ParseUint recebe 3 parâmetros: 1º a variavel a ser convertida, 2º a base utilizada, 3º o tamanho em bits
@@ -53,8 +53,8 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	exercicioRepository := repositories.NewRepositoryExercicio(db)
-	exercicio, erro := exercicioRepository.GetExercicioByID(ID)
+	exercicioPlanoTreinoRepository := repositories.NewRepositoryExercicioPlanoTreino(db)
+	exercicio, erro := exercicioPlanoTreinoRepository.GetExercicioPlanoTreinoByID(ID)
 
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
@@ -65,7 +65,7 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func InsertExercicio(w http.ResponseWriter, r *http.Request) {
+func InsertExercicioPlanoTreino(w http.ResponseWriter, r *http.Request) {
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
@@ -73,8 +73,8 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var exercicio models.Exercicio
-	if erro = json.Unmarshal(requestBody, &exercicio); erro != nil {
+	var exercicioPlanoTreino models.ExercicioPlanoTreino
+	if erro = json.Unmarshal(requestBody, &exercicioPlanoTreino); erro != nil {
 		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
@@ -88,17 +88,18 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	exercicioRepository := repositories.NewRepositoryExercicio(db)
-	exercicio.ID, erro = exercicioRepository.InsertExercicio(exercicio)
+	exercicioPlanoTreinoRepository := repositories.NewRepositoryExercicioPlanoTreino(db)
+	exercicioPlanoTreino.ID, erro = exercicioPlanoTreinoRepository.InsertExercicioPlanoTreino(exercicioPlanoTreino)
 	if erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, exercicio)
+	response.JSON(w, http.StatusCreated, exercicioPlanoTreino)
 
 }
-func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
+
+func UpdateExercicioPlanoTreino(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
@@ -115,8 +116,8 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var exercicio models.Exercicio
-	if erro = json.Unmarshal(requestBody, &exercicio); erro != nil {
+	var exercicioPlanoTreino models.ExercicioPlanoTreino
+	if erro = json.Unmarshal(requestBody, &exercicioPlanoTreino); erro != nil {
 		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
@@ -129,8 +130,8 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-	exercicioRepository := repositories.NewRepositoryExercicio(db)
-	if erro = exercicioRepository.UpdateExercicio(ID, exercicio); erro != nil {
+	exercicioPlanoTreinoRepository := repositories.NewRepositoryExercicioPlanoTreino(db)
+	if erro = exercicioPlanoTreinoRepository.UpdateExercicioPlanoTreino(ID, exercicioPlanoTreino); erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
@@ -139,7 +140,7 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
+func DeleteExercicioPlanoTreinoByID(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 32)
@@ -158,8 +159,8 @@ func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 
-	exercicioRepository := repositories.NewRepositoryExercicio(db)
-	if erro = exercicioRepository.DeleteExercicioByID(ID); erro != nil {
+	exercicioPlanoTreinoRepository := repositories.NewRepositoryExercicioPlanoTreino(db)
+	if erro = exercicioPlanoTreinoRepository.DeleteExercicioPlanoTreinoByID(ID); erro != nil {
 		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}

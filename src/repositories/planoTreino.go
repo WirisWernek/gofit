@@ -33,7 +33,7 @@ func (repository PlanoTreinoRepository) InsertPlanoTreino(planoTreino models.Pla
 }
 
 func (repository PlanoTreinoRepository) GetAllPlanosTreino() ([]models.PlanoTreino, error) {
-	linhas, erro := repository.db.Query("SELECT * FROM plano_treino")
+	linhas, erro := repository.db.Query("SELECT id, nome, descricao, inicio, descanso, ativo FROM plano_treino")
 
 	if erro != nil {
 		return nil, erro
@@ -57,7 +57,7 @@ func (repository PlanoTreinoRepository) GetAllPlanosTreino() ([]models.PlanoTrei
 }
 
 func (repository PlanoTreinoRepository) GetPlanoTreinoByID(planoTreinoID uint64) (models.PlanoTreino, error) {
-	statement, erro := repository.db.Prepare("SELECT * FROM plano_treino WHERE id = $1")
+	statement, erro := repository.db.Prepare("SELECT id, nome, descricao, inicio, descanso, ativo FROM plano_treino WHERE id = $1")
 
 	if erro != nil {
 		return models.PlanoTreino{}, erro
