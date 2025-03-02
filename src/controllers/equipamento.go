@@ -18,8 +18,7 @@ func GetAllEquipamentos(w http.ResponseWriter, r *http.Request) {
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -28,7 +27,7 @@ func GetAllEquipamentos(w http.ResponseWriter, r *http.Request) {
 	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
 	equipamentos, erro := equipamentoRepository.GetAllEquipamentos()
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -43,16 +42,14 @@ func GetEquipamentoByID(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter o parâmetro ID"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -61,11 +58,11 @@ func GetEquipamentoByID(w http.ResponseWriter, r *http.Request) {
 	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
 	equipamento, erro := equipamentoRepository.GetEquipamentoByID(ID)
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, equipamento)
+	response.JSON(w, http.StatusOK, equipamento)
 
 }
 
@@ -73,23 +70,20 @@ func InsertEquipamento(w http.ResponseWriter, r *http.Request) {
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Falha ao ler o body da request"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	var equipamento models.Equipamento
 	if erro = json.Unmarshal(requestBody, &equipamento); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter equipamento"))
+		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -97,7 +91,7 @@ func InsertEquipamento(w http.ResponseWriter, r *http.Request) {
 	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
 	equipamento.ID, erro = equipamentoRepository.InsertEquipamento(equipamento)
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -111,38 +105,34 @@ func UpdateEquipamento(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter o parâmetro ID"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Falha ao ler o body da request"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	var equipamento models.Equipamento
 	if erro = json.Unmarshal(requestBody, &equipamento); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter equipamento"))
+		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
 	defer db.Close()
 	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
 	if erro = equipamentoRepository.UpdateEquipamento(ID, equipamento); erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -171,7 +161,7 @@ func DeleteEquipmentoByID(w http.ResponseWriter, r *http.Request) {
 
 	equipamentoRepository := repositories.NewRepositoryEquipamento(db)
 	if erro = equipamentoRepository.DeleteEquipmentoByID(ID); erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 

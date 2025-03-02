@@ -17,20 +17,20 @@ func GetAllExercicios(w http.ResponseWriter, r *http.Request) {
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
 	defer db.Close()
 	exercicioRepository := repositories.NewRepositoryExercicio(db)
 	exercicios, erro := exercicioRepository.GetAllExercicios()
+
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, exercicios)
+	response.JSON(w, http.StatusOK, exercicios)
 }
 
 func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
@@ -40,16 +40,14 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter o parâmetro ID"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -57,12 +55,13 @@ func GetExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	exercicioRepository := repositories.NewRepositoryExercicio(db)
 	exercicio, erro := exercicioRepository.GetExercicioByID(ID)
+
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, exercicio)
+	response.JSON(w, http.StatusOK, exercicio)
 
 }
 
@@ -70,23 +69,20 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Falha ao ler o body da request"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	var exercicio models.Exercicio
 	if erro = json.Unmarshal(requestBody, &exercicio); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter exercicio"))
+		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -95,7 +91,7 @@ func InsertExercicio(w http.ResponseWriter, r *http.Request) {
 	exercicioRepository := repositories.NewRepositoryExercicio(db)
 	exercicio.ID, erro = exercicioRepository.InsertExercicio(exercicio)
 	if erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -108,38 +104,34 @@ func UpdateExercicio(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter o parâmetro ID"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	requestBody, erro := io.ReadAll(r.Body)
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Falha ao ler o body da request"))
+		response.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
 	var exercicio models.Exercicio
 	if erro = json.Unmarshal(requestBody, &exercicio); erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao converter exercício"))
+		response.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
 	db, erro := database.Conectar()
 
 	if erro != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Erro ao conectar ao database"))
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
 	defer db.Close()
 	exercicioRepository := repositories.NewRepositoryExercicio(db)
 	if erro = exercicioRepository.UpdateExercicio(ID, exercicio); erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
@@ -167,7 +159,7 @@ func DeleteExercicioByID(w http.ResponseWriter, r *http.Request) {
 
 	exercicioRepository := repositories.NewRepositoryExercicio(db)
 	if erro = exercicioRepository.DeleteExercicioByID(ID); erro != nil {
-		response.Erro(w, http.StatusBadRequest, erro)
+		response.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
